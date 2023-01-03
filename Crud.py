@@ -71,16 +71,16 @@ class App(tk.Tk):
             command=self.btnInserir_Click)  
         self.Bnt3.grid(row=3,column=2,padx=20,pady=5,sticky="we") 
 
-        self.Bnt4 = ttk.Button(self,text="READ")
-        #,command=self.btnLeitura_Click  
+        self.Bnt4 = ttk.Button(self,text="READ",
+        command=self.btnLeitura_Click)
         self.Bnt4.grid(row=4,column=2,padx=20,pady=5,sticky="we") 
 
-        self.Bnt5 = ttk.Button(self,text="UPDATE")
-            #,command=self.btnAtualiza_Click  
+        self.Bnt5 = ttk.Button(self,text="UPDATE",
+            command=self.btnAtualiza_Click  )
         self.Bnt5.grid(row=5,column=2,padx=20,pady=5,sticky="we") 
 
-        self.Bnt6 = ttk.Button(self,text="DELETE")
-            #,command=self.btnDeleta_Click  
+        self.Bnt6 = ttk.Button(self,text="DELETE",
+                command=self.btnDeleta_Click ) 
         self.Bnt6.grid(row=6,column=2,padx=20,pady=5,sticky="we")  
 
 
@@ -119,7 +119,7 @@ class App(tk.Tk):
         try:
             connection = mysql.connector.connect(host='localhost',
                                                 user='root',
-                                                password='Dddlma10@30#')
+                                                password='********')
 
             cursor = connection.cursor()
             sql = "CREATE DATABASE IF NOT EXISTS Crud_Clientes"
@@ -137,7 +137,7 @@ class App(tk.Tk):
         try:
             connection = mysql.connector.connect(host='localhost',
                                                 user='root',
-                                                password='Dddlma10@30#',
+                                                password='********',
                                                 database = 'Crud_Clientes')
 
             cursor = connection.cursor()
@@ -174,7 +174,7 @@ class App(tk.Tk):
             try:
                 connection = mysql.connector.connect(host='localhost',
                                                     user='root',
-                                                    password='Dddlma10@30#',
+                                                    password='********',
                                                     database = 'Crud_Clientes')
 
                 cursor = connection.cursor()
@@ -189,13 +189,15 @@ class App(tk.Tk):
             except :
                 self.varResultado.set("Error on insert client")
                 self.lblResultado.configure(background="#ff0000")
-"""
+                
+                
+                
     def btnLeitura_Click(self):
 
         try:
             connection = mysql.connector.connect(host='localhost',
                                                 user='root',
-                                                password='Dddlma10@30#',
+                                                password='********',
                                                 database = 'Crud_Clientes')
 
             cursor = connection.cursor()
@@ -203,54 +205,71 @@ class App(tk.Tk):
             cursor.execute(sql)
             self.varResultado.set("client select successfully" )
             self.lblResultado.configure(background="#3cb371")
-           
 
         except :
             self.varResultado.set("Error on select client")
             self.lblResultado.configure(background="#ff0000")
-
+            
+            
+                
     def btnAtualiza_Click(self):
-        try:
-            connection = mysql.connector.connect(host='localhost',
-                                                user='root',
-                                                password='Dddlma10@30#',
-                                                database = 'Crud_Clientes')
-
-            cursor = connection.cursor()
-            sql = "UPDATE clientes SET nome = self.varNome, email= self.varEmail"
-            cursor.execute(sql)
-            self.varResultado.set("client updated successfully" )
-            self.lblResultado.configure(background="#3cb371")
-           
-
-        except :
-            self.varResultado.set("Error on update client")
-            self.lblResultado.configure(background="#ff0000")
     
+        email = self.varEmail.get().strip()
+        resemail = re.fullmatch(r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b", email)
+        
+        if resemail is None:
+            self.varResultado.set("Campo email obrigatório!")
+            self.lblResultado.configure(background="#ff0000")
+            self.txtEmail.focus()
+        else:
+            try:
+                connection = mysql.connector.connect(host='localhost',
+                                                    user='root',
+                                                    password='********',
+                                                    database = 'Crud_Clientes')
+
+                cursor = connection.cursor()
+                sql = "UPDATE clientes SET nome = %s WHERE email = %s"
+                val = (self.varNome.get(),self.varEmail.get())
+                cursor.execute(sql,val)
+                connection.commit()
+                self.varResultado.set("client updated successfully" )
+                self.lblResultado.configure(background="#3cb371")
+            
+
+            except :
+                self.varResultado.set("Error on update client")
+                self.lblResultado.configure(background="#ff0000")
+                
+                
     def btnDeleta_Click(self):
         try:
             connection = mysql.connector.connect(host='localhost',
                                                 user='root',
-                                                password='Dddlma10@30#',
+                                                password='********',
                                                 database = 'Crud_Clientes')
 
             cursor = connection.cursor()
-            sql = "DELETE FROM clientes"
-            cursor.execute(sql)
+            sql = "DELETE FROM clientes WHERE nome = %s"
+            val = (self.varNome.get(),)
+            cursor.execute(sql,val)
+            connection.commit()
             self.varResultado.set("client deleted successfully" )
             self.lblResultado.configure(background="#3cb371")
-           
+
 
         except :
             self.varResultado.set("Error on delete client")
             self.lblResultado.configure(background="#ff0000")
 
-            
-"""
+
+
+
+
+
 #inicialização
 if __name__ == "__main__":
     app = App()
     app.mainloop()
     
 
-      
