@@ -3,9 +3,9 @@ A framework connected to my sql workbench
 - Create a database
 - Create a table clients
 - Insert clients(by the fields name and email)
-- Read clients(to be continue...)
-- Update clients(by email)
-- Delete clients(by name)
+- Read clients
+- Update clients(by email or name)
+- Delete clients(by email or name)
  
 Install mysql.connector on vscode adding this to your terminal:
 python3 -m pip install mysql-connector-python
