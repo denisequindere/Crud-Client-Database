@@ -1,11 +1,10 @@
-#Denise Quinderé
 
+#Denise Quinderé
 
 import tkinter as tk
 from tkinter import ttk
 import re
 import mysql.connector  
-
 
 
 class App(tk.Tk):
@@ -106,15 +105,15 @@ class App(tk.Tk):
                 self.varNome.set(record[0])
                 self.varEmail.set(record[1])
             
-            self.txtLista.bind('<<TreeviewSelect>>', item_selected)
+        self.txtLista.bind('<<TreeviewSelect>>', item_selected)
 
-            self.txtLista.grid(row=0, column=0, sticky="nwes")
+        self.txtLista.grid(row=0, column=0, sticky="nwes")
 
-            scrollbar = ttk.Scrollbar(
-                self.frameLista, orient=tk.VERTICAL, 
-                command=self.txtLista.yview)
-            self.txtLista.configure(yscroll=scrollbar.set)
-            scrollbar.grid(row=0, column=1, sticky='ns')
+        scrollbar = ttk.Scrollbar(
+            self.frameLista, orient=tk.VERTICAL, 
+            command=self.txtLista.yview)
+        self.txtLista.configure(yscroll=scrollbar.set)
+        scrollbar.grid(row=0, column=1, sticky='ns')
 
 
     def btnConectar_Click(self):
@@ -122,17 +121,17 @@ class App(tk.Tk):
         try:
             connection = mysql.connector.connect(host='localhost',
                                                 user='root',
-                                                password='********')
+                                                password='*****')
 
             cursor = connection.cursor()
             sql = "CREATE DATABASE IF NOT EXISTS Crud_Clientes"
             cursor.execute(sql)
-            self.varResultado.set("Connected to MySQL Server" )
+            self.varResultado.set("Connected to SQL Server" )
             self.lblResultado.configure(background="#3cb371")
 
 
         except :
-            self.varResultado.set("Not Connected to MySQL Server" )
+            self.varResultado.set("Error to Connect to SQL Server" )
             self.lblResultado.configure(background="#ff0000")
 
     def btnCriarTable_Click(self):
@@ -140,7 +139,7 @@ class App(tk.Tk):
         try:
             connection = mysql.connector.connect(host='localhost',
                                                 user='root',
-                                                password='********',
+                                                password='******',
                                                 database = 'Crud_Clientes')
 
             cursor = connection.cursor()
@@ -177,7 +176,7 @@ class App(tk.Tk):
             try:
                 connection = mysql.connector.connect(host='localhost',
                                                     user='root',
-                                                    password='********',
+                                                    password='******',
                                                     database = 'Crud_Clientes')
 
                 cursor = connection.cursor()
@@ -185,7 +184,7 @@ class App(tk.Tk):
                 val = (nome,email)
                 cursor.execute(sql,val)
                 connection.commit()
-                self.varResultado.set("client inserted successfully" )
+                self.varResultado.set("Client inserted successfully" )
                 self.lblResultado.configure(background="#3cb371")
             
 
@@ -196,18 +195,35 @@ class App(tk.Tk):
                 
                 
     def btnLeitura_Click(self):
-
+        self.txtLista.delete(*self.txtLista.get_children())
         try:
             connection = mysql.connector.connect(host='localhost',
                                                 user='root',
-                                                password='********',
+                                                password='*****',
                                                 database = 'Crud_Clientes')
 
             cursor = connection.cursor()
-            sql = "SELECT * FROM clientes"
-            cursor.execute(sql)
-            self.varResultado.set("client select successfully" )
+            sql = "SELECT * FROM clientes ORDER BY nome ASC"
+
+            if self.varNome.get() != "":
+                sql = "SELECT * FROM clientes WHERE nome LIKE %s"
+                val = (self.varNome.get(),)
+                cursor.execute(sql, val)
+            elif self.varEmail.get() != "":                
+                sql = "SELECT * FROM clientes WHERE email LIKE %s"
+                val = (self.varEmail.get(),)
+                cursor.execute(sql, val)
+            else:                
+                cursor.execute(sql)
+
+            myresult = cursor.fetchall()
+
+            for contato in myresult:
+                self.txtLista.insert('', tk.END, values=contato)
+            
+            self.varResultado.set("Listagem")
             self.lblResultado.configure(background="#3cb371")
+            self.txtNome.focus()  
 
         except :
             self.varResultado.set("Error on select client")
@@ -216,48 +232,83 @@ class App(tk.Tk):
             
                 
     def btnAtualiza_Click(self):
-    
+        nome = self.varNome.get().strip()
         email = self.varEmail.get().strip()
+        resnome =  re.fullmatch(r"\b[A-Za-z ]+\b", nome)
         resemail = re.fullmatch(r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b", email)
         
-        if resemail is None:
-            self.varResultado.set("Campo email obrigatório!")
+        if len(self.txtLista.selection()) < 1:
+            self.varResultado.set("Select a client to edit")
             self.lblResultado.configure(background="#ff0000")
-            self.txtEmail.focus()
-        else:
-            try:
-                connection = mysql.connector.connect(host='localhost',
-                                                    user='root',
-                                                    password='********',
-                                                    database = 'Crud_Clientes')
-
-                cursor = connection.cursor()
-                sql = "UPDATE clientes SET nome = %s WHERE email = %s"
-                val = (self.varNome.get(),self.varEmail.get())
-                cursor.execute(sql,val)
-                connection.commit()
-                self.varResultado.set("client updated successfully" )
-                self.lblResultado.configure(background="#3cb371")
-            
-
-            except :
-                self.varResultado.set("Error on update client")
-                self.lblResultado.configure(background="#ff0000")
-                
-                
-    def btnDeleta_Click(self):
+            self.txtNome.focus()
+            return
+        
         try:
+
+            registro = self.txtLista.selection()[0]
+            dadosRegistro = self.txtLista.item(registro)
+            nomeRegistro = dadosRegistro["values"][0]
+            emailRegistro = dadosRegistro["values"][1]
+
+
             connection = mysql.connector.connect(host='localhost',
                                                 user='root',
-                                                password='********',
+                                                password='******',
                                                 database = 'Crud_Clientes')
 
             cursor = connection.cursor()
-            sql = "DELETE FROM clientes WHERE nome = %s"
-            val = (self.varNome.get(),)
+            sql = "UPDATE clientes SET nome = %s, email = %s WHERE nome = %s AND email = %s"
+            val = (nome,email,nomeRegistro,emailRegistro)
             cursor.execute(sql,val)
             connection.commit()
-            self.varResultado.set("client deleted successfully" )
+
+            self.varNome.set('')
+            self.varEmail.set('')
+
+            self.btnLeitura_Click()
+            self.varResultado.set("Client updated successfully" )
+            self.lblResultado.configure(background="#3cb371")
+        
+
+        except :
+            self.varResultado.set("Error on update client")
+            self.lblResultado.configure(background="#ff0000")
+                
+                
+    def btnDeleta_Click(self):
+
+        nome = self.varNome.get().strip()
+        email = self.varEmail.get().strip()
+        resnome =  re.fullmatch(r"\b[A-Za-z ]+\b", nome)
+        resemail = re.fullmatch(r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b", email)
+        
+        if len(self.txtLista.selection()) < 1:
+            self.varResultado.set("Select a client to delete")
+            self.lblResultado.configure(background="#ff0000")
+            self.txtNome.focus()
+            return
+        try:
+            registro = self.txtLista.selection()[0]
+            dadosRegistro = self.txtLista.item(registro)
+            nomeRegistro = dadosRegistro["values"][0]
+            emailRegistro = dadosRegistro["values"][1]
+
+            connection = mysql.connector.connect(host='localhost',
+                                                user='root',
+                                                password='******',
+                                                database = 'Crud_Clientes')
+
+            cursor = connection.cursor()
+            sql = "DELETE FROM clientes WHERE nome = %s AND email = %s"
+            val = (nomeRegistro,emailRegistro)
+            cursor.execute(sql,val)
+            connection.commit()
+
+            self.varNome.set('')
+            self.varEmail.set('')
+
+            self.btnLeitura_Click()
+            self.varResultado.set("Client deleted successfully" )
             self.lblResultado.configure(background="#3cb371")
 
 
@@ -274,5 +325,3 @@ class App(tk.Tk):
 if __name__ == "__main__":
     app = App()
     app.mainloop()
-    
-
